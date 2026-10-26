@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WonChill - Order Online & POS System</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff5f5',
+                            100: '#fed7d7',
+                            200: '#feb2b2',
+                            500: '#e53e3e',
+                            600: '#c53030',
+                            700: '#9b2c2c',
+                            900: '#742a2a'
+                        }
+                    },
+                    keyframes: {
+                        shimmer: {
+                            '0%': { backgroundPosition: '-200% 0' },
+                            '100%': { backgroundPosition: '200% 0' },
+                        }
+                    },
+                    animation: {
+                        shimmer: 'shimmer 3s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- XLSX untuk Ekspor Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
+        
+
+        .animated-border {
+            background: linear-gradient(90deg, #e53e3e, #ff8787, #ffa8a8, #e53e3e);
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @media print {
+            @page { size: 58mm auto; margin: 0mm; }
+            body * { visibility: hidden; }
+            #receipt-print-area, #receipt-print-area * { visibility: visible; }
+            #receipt-print-area { position: absolute; left: 0; top: 0; width: 58mm; font-family: monospace; font-size: 11px; color: black; padding: 5px; }
+        }
+
+
+        /* ===== WONCHILL PREMIUM REFRESH (lapisan visual; fungsi lama tetap dipakai) ===== */
+        :root { --wc-red:#d92f38; --wc-red-dark:#a91f2a; --wc-cream:#fffaf6; --wc-ink:#20232b; --wc-muted:#737783; }
+        html { scroll-behavior:smooth; }
+        body { background:var(--wc-cream) !important; color:var(--wc-ink); }
+        ::selection { background:#d92f38; color:#fff; }
+        header.glass { background:rgba(255,250,247,.88) !important; border-color:rgba(217,47,56,.12) !important; box-shadow:0 8px 30px rgba(55,24,18,.06) !important; }
+        header .max-w-5xl { max-width:1180px; padding-top:15px; padding-bottom:15px; }
+        header .w-10.h-10 { border-radius:16px !important; box-shadow:0 8px 20px rgba(217,47,56,.24) !important; }
+        header h1 { font-size:22px !important; letter-spacing:-.8px; }
+        header button[onclick="toggleCart()"] { border-radius:999px !important; padding:11px 18px !important; box-shadow:0 5px 16px rgba(217,47,56,.07); }
+        .animated-border { height:3px !important; background:linear-gradient(90deg,#a91f2a,#f05b4e,#ffb36b,#a91f2a) !important; }
+        main.max-w-5xl { max-width:1180px !important; padding-top:42px !important; padding-bottom:64px !important; gap:58px !important; }
+        main section h3 { letter-spacing:-.65px; }
+        main section > .flex.items-center.justify-between.border-b { border-color:#f0d8d3 !important; padding-bottom:16px !important; }
+        main section > .flex.items-center.justify-between.border-b h3 { font-size:22px !important; }
+        main section > .flex.items-center.justify-between.border-b > span { background:#fff !important; border-color:#f0d8d3 !important; padding:7px 13px !important; }
+        #wonton-products { gap:18px !important; }
+        #wonton-products > div { background:#fff !important; border:1px solid #f3e5e0 !important; border-radius:24px !important; padding:16px !important; gap:16px !important; box-shadow:0 5px 18px rgba(55,24,18,.045) !important; transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease !important; }
+        #wonton-products > div:hover { transform:translateY(-4px); border-color:#efb9b6 !important; box-shadow:0 16px 32px rgba(75,30,22,.10) !important; }
+        #wonton-products img { width:116px !important; height:116px !important; border-radius:19px !important; }
+        #wonton-products h4 { font-size:15px !important; letter-spacing:-.25px; }
+        #wonton-products p.text-brand-600 { font-size:16px !important; color:var(--wc-red) !important; }
+        #wonton-products button { border-radius:12px !important; padding:9px 13px !important; }
+        #wonton-products button.bg-gray-100 { background:#f5f5f6 !important; }
+        #wonton-products button.bg-brand-500, #modal-add-btn, #cart-modal button.bg-brand-500 { background:linear-gradient(135deg,#e84445,#c92732) !important; box-shadow:0 5px 13px rgba(217,47,56,.18); }
+        #wonton-products button.bg-brand-500:hover, #modal-add-btn:hover { filter:brightness(.96); transform:translateY(-1px); }
+        main .glass.bg-white\/90 { border-color:#f2e3de !important; border-radius:26px !important; box-shadow:0 8px 25px rgba(55,24,18,.055) !important; }
+        #floating-cart-bar > div { border-radius:22px !important; box-shadow:0 18px 55px rgba(18,18,22,.25) !important; }
+        footer { background:#fffaf7 !important; border-color:#f0d8d3 !important; }
+        #image-modal > div, #fan-catalog-modal > div, #qris-modal > div, #admin-login-modal > div, #admin-dashboard-modal > div { border-radius:28px !important; box-shadow:0 30px 90px rgba(20,12,10,.28) !important; }
+        #fan-catalog-modal .bg-brand-500, #cart-modal > div > .bg-brand-500 { background:linear-gradient(120deg,#d92f38,#ef5548) !important; }
+        #cart-modal > div { box-shadow:-20px 0 70px rgba(0,0,0,.18); }
+        input:focus, select:focus { border-color:#e35a5c !important; box-shadow:0 0 0 4px rgba(217,47,56,.10) !important; }
+        button { -webkit-tap-highlight-color:transparent; }
+        button:focus-visible { outline:3px solid rgba(217,47,56,.35); outline-offset:3px; }
+        .wc-hero { position:relative; isolation:isolate; overflow:hidden; color:white; padding:58px 24px 62px; background:radial-gradient(circle at 80% 25%,rgba(255,181,112,.45),transparent 28%),linear-gradient(120deg,#8f1825 0%,#d52d38 48%,#f05a32 100%); }
+        .wc-hero:before,.wc-hero:after { content:""; position:absolute; z-index:-1; border:1px solid rgba(255,255,255,.14); border-radius:50%; }
+        .wc-hero:before { width:430px;height:430px;right:-110px;top:-230px; }
+        .wc-hero:after { width:300px;height:300px;right:30px;bottom:-220px; }
+        .wc-hero-inner { max-width:1180px; margin:auto; display:grid; grid-template-columns:1.1fr .9fr; align-items:center; gap:40px; text-align:left; }
+        .wc-hero-copy { position:relative; z-index:1; }
+        .wc-eyebrow { display:inline-flex; align-items:center; gap:8px; padding:8px 13px; border:1px solid rgba(255,255,255,.27); background:rgba(255,255,255,.13); border-radius:999px; font-size:12px; font-weight:800; backdrop-filter:blur(8px); }
+        .wc-hero h2 { margin-top:19px; max-width:620px; font-size:clamp(34px,4.5vw,56px); line-height:1.07; font-weight:800; letter-spacing:-2.2px; }
+        .wc-hero p { max-width:490px; margin-top:16px; color:rgba(255,255,255,.83); font-size:15px; line-height:1.8; }
+        .wc-hero-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:25px; }
+        .wc-hero-cta { display:inline-flex; align-items:center; justify-content:center; gap:9px; border-radius:999px; padding:13px 19px; color:#a51e29; background:#fff; font-size:13px; font-weight:800; box-shadow:0 9px 25px rgba(65,8,12,.16); transition:transform .2s,box-shadow .2s; }
+        .wc-hero-cta:hover { transform:translateY(-2px); box-shadow:0 14px 30px rgba(65,8,12,.22); }
+        .wc-hero-note { font-size:12px; font-weight:700; color:rgba(255,255,255,.82); }
+        .wc-hero-art { position:relative; min-height:275px; display:flex; align-items:center; justify-content:center; }
+        .wc-hero-orbit { position:absolute; width:min(31vw,330px); aspect-ratio:1; border:1px solid rgba(255,255,255,.23); border-radius:50%; }
+        .wc-hero-photo { position:relative; width:min(100%,390px); aspect-ratio:1.12; object-fit:cover; border:7px solid rgba(255,255,255,.18); border-radius:36px; transform:rotate(3deg); box-shadow:0 28px 60px rgba(62,9,10,.3); }
+        .wc-photo-tag { position:absolute; left:0; bottom:9px; padding:12px 16px; border-radius:16px; color:#27242a; background:#fffaf4; box-shadow:0 12px 30px rgba(62,9,10,.18); font-size:12px; font-weight:800; transform:rotate(-3deg); }
+        .wc-menu-tools { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:0 0 20px; }
+        .wc-search-wrap { position:relative; flex:1; max-width:390px; }
+        .wc-search-wrap svg { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:18px; color:#92939a; }
+        .wc-search { width:100%; padding:13px 16px 13px 43px; border:1px solid #eee0db; border-radius:15px; background:#fff; font:500 13px 'Plus Jakarta Sans',sans-serif; outline:none; transition:.2s; }
+        .wc-search:focus { border-color:#e35a5c; box-shadow:0 0 0 4px rgba(217,47,56,.08); }
+        .wc-filters { display:flex; gap:7px; flex-wrap:wrap; }
+        .wc-filter { border:1px solid #efdfda; color:#6d6261; background:#fff; border-radius:999px; padding:10px 13px; font-size:11px; font-weight:800; transition:.2s; }
+        .wc-filter:hover,.wc-filter.active { color:#fff; border-color:#d92f38; background:#d92f38; box-shadow:0 5px 12px rgba(217,47,56,.16); }
+        .wc-empty { grid-column:1/-1; padding:28px; text-align:center; border:1px dashed #e9c9c2; background:#fff; color:#827775; border-radius:20px; font-size:13px; }
+        @media(max-width:700px) {
+          .wc-hero { padding:40px 20px 42px; }
+          .wc-hero-inner { grid-template-columns:1fr; gap:25px; text-align:center; }
+          .wc-hero-copy { display:flex; flex-direction:column; align-items:center; }
+          .wc-hero h2 { font-size:38px; letter-spacing:-1.5px; }
+          .wc-hero p { font-size:13px; }
+          .wc-hero-art { min-height:210px; }
+          .wc-hero-photo { width:min(76%,310px); border-radius:28px; }
+          .wc-hero-orbit { width:220px; }
+          .wc-photo-tag { left:7%; bottom:0; }
+          main.max-w-5xl { padding-top:30px !important; gap:42px !important; }
+          .wc-menu-tools { align-items:stretch; flex-direction:column; }
+          .wc-search-wrap { max-width:none; }
+          .wc-filters { flex-wrap:nowrap; overflow-x:auto; padding-bottom:3px; }
+          .wc-filter { white-space:nowrap; }
+          #wonton-products > div { padding:12px !important; gap:12px !important; border-radius:20px !important; }
+          #wonton-products img { width:94px !important; height:94px !important; }
+          #wonton-products button { padding:8px 10px !important; }
+        }
+        @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+
+    </style>
+</head>
+<body class="bg-gradient-to-br from-brand-50 via-red-50/30 to-orange-50/20 text-gray-800 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+
+    <header class="glass sticky top-0 z-40 border-b border-brand-100 shadow-sm">
+        <div class="h-1.5 w-full animated-border"></div>
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/30">
+                    <i data-lucide="flame" class="w-6 h-6 animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg text-gray-900 tracking-tight leading-none">WonChill</h1>
+                    <span class="text-[11px] font-semibold text-brand-600 uppercase tracking-widest">Wonton & Custom Fan</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button onclick="toggleCart()" class="relative bg-white hover:bg-brand-50 text-brand-700 font-bold px-4 py-2.5 rounded-2xl border border-brand-200 flex items-center gap-2.5 shadow-sm transition">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-brand-500"></i>
+                    <span class="text-xs hidden sm:inline">Keranjang</span>
+                    <span id="cart-count" class="bg-brand-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+
+    <section class="wc-hero">
+        <div class="wc-hero-inner">
+            <div class="wc-hero-copy">
+                <span class="wc-eyebrow"><i data-lucide="gift" class="w-4 h-4"></i> Belanja Min. Rp 30rb GRATIS Kipas Custom Random!</span>
+                <h2>Satu Gigitan Wonton, Bikin Hari Kamu Makin Chill!</h2>
+                <p>Pilihan wonton kukus & goreng paling mantap untuk nemenin nongkrong kamu. Pesan online sekarang, cepat dan praktis!</p>
+                <div class="wc-hero-actions">
+                    <a href="#wonton-menu" class="wc-hero-cta">Jelajahi Menu <i data-lucide="arrow-down-right" class="w-4 h-4"></i></a>
+                    <span class="wc-hero-note"><i data-lucide="zoom-in" class="w-4 h-4 inline-block align-middle mr-1"></i>Klik foto untuk melihat detail</span>
+                </div>
+            </div>
+            <div class="wc-hero-art" aria-label="Foto wonton">
+                <div class="wc-hero-orbit"></div>
+                <img class="wc-hero-photo" src="bannerwonton.jpeg" alt="Sajian wonton WonChill" onerror="this.style.display='none'">
+                <div class="wc-photo-tag"><i data-lucide="flame" class="w-4 h-4 inline-block align-middle mr-1 text-red-500"></i> Wonton & Custom Fan</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Utama -->
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full space-y-12">
+
+        <!-- Kategori 1: Menu Wonton -->
+        <section id="wonton-menu" class="space-y-6">
+            <div class="flex items-center justify-between border-b border-brand-200/60 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-brand-100 text-brand-600 rounded-xl">
+                        <i data-lucide="utensils" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-gray-900">Menu Spesial Wonton</h3>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 bg-brand-50 text-brand-600 rounded-full border border-brand-200">Serba Rp 10.000</span>
+            </div>
+
+            <div class="wc-menu-tools">
+                <label class="wc-search-wrap">
+                    <i data-lucide="search"></i>
+                    <input id="wonton-search" class="wc-search" type="search" placeholder="Cari wonton favoritmu..." autocomplete="off" aria-label="Cari menu wonton">
+                </label>
+                <div class="wc-filters" role="group" aria-label="Filter menu wonton">
+                    <button type="button" class="wc-filter active" data-filter="all" onclick="setWontonFilter('all', this)">Semua Menu</button>
+                    <button type="button" class="wc-filter" data-filter="kukus" onclick="setWontonFilter('kukus', this)">Kukus</button>
+                    <button type="button" class="wc-filter" data-filter="goreng" onclick="setWontonFilter('goreng', this)">Goreng</button>
+                    <button type="button" class="wc-filter" data-filter="chili" onclick="setWontonFilter('chili', this)">Chili Oil</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5" id="wonton-products">
+                <!-- Di-render via JavaScript -->
+            </div>
+        </section>
+
+        <!-- Kategori 2: Kartu Katalog 15 Kipas Custom (Tanpa Numpuk di Dashboard) -->
+        <section class="space-y-6">
+            <div class="flex items-center justify-between border-b border-brand-200/60 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-brand-100 text-brand-600 rounded-xl">
+                        <i data-lucide="fan" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-extrabold text-gray-900">Kipas Custom WonChill</h3>
+                        <p class="text-xs text-gray-500">Pilih model kipas estetik favoritmu secara mandiri!</p>
+                    </div>
+                </div>
+                <span class="text-xs font-bold px-3 py-1 bg-brand-50 text-brand-600 rounded-full border border-brand-200">15 Pilihan Model</span>
+            </div>
+
+            <div class="glass bg-white/90 p-5 rounded-3xl border border-brand-100 shadow-md flex flex-col sm:flex-row items-center gap-5 transition hover:shadow-lg">
+                <div class="w-28 h-28 rounded-2xl bg-brand-100 flex items-center justify-center text-brand-600 shadow-inner flex-shrink-0">
+                    <i data-lucide="sparkles" class="w-12 h-12"></i>
+                </div>
+                <div class="flex-1 space-y-2 text-center sm:text-left">
+                    <span class="text-[10px] font-bold px-2.5 py-0.5 bg-brand-50 text-brand-600 rounded-full">Katalog Eksklusif</span>
+                    <h4 class="font-extrabold text-base text-gray-900">Koleksi 15 Model Kipas Custom WonChill</h4>
+                    <p class="text-xs text-gray-500 leading-relaxed">Mau pilih motif kipas sendiri sesuai selera? Buka katalog pop-up berisi 15 pilihan desain mentahan kami dan geser untuk melihat semuanya!</p>
+                    <button onclick="openFanCatalogModal()" class="mt-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition flex items-center justify-center sm:justify-start gap-2 mx-auto sm:mx-0">
+                        <i data-lucide="eye" class="w-4 h-4"></i> Buka Katalog Geser (15 Model)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Floating Cart Bar -->
+    <div id="floating-cart-bar" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30 hidden w-[90%] max-w-md">
+        <div class="bg-gray-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center border border-gray-700">
+            <div class="flex items-center gap-3">
+                <div class="bg-brand-500 p-2 rounded-xl text-white">
+                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-400"><span id="floating-total-items">0</span> Item Dipilih</p>
+                    <p class="text-base font-extrabold text-white" id="floating-total-price">Rp 0</p>
+                </div>
+            </div>
+            <button onclick="toggleCart()" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                Lihat Keranjang <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Rahasia (Ketuk 5x untuk buka Admin) -->
+    <footer onclick="triggerAdminSecret()" class="bg-white/80 border-t border-brand-100 py-6 text-center text-xs text-gray-400 cursor-pointer select-none mt-12">
+        <p>© WonChill - Pedas Gurih Nikmat. All rights reserved.</p>
+        <span class="text-[10px] text-gray-300 mt-0.5 block">Kasir</span>
+    </footer>
+
+    <!-- Modal Detail Image Wonton (Pop-Up Zoom ala GoFood) -->
+    <div id="image-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button onclick="closeImageModal()" class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm z-10 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <img id="modal-img-src" src="" alt="Detail Produk" class="w-full h-64 object-cover">
+            <div class="p-5 space-y-3">
+                <div class="flex justify-between items-start">
+                    <h3 id="modal-img-title" class="font-extrabold text-xl text-gray-900">Nama Produk</h3>
+                    <span id="modal-img-price" class="font-black text-brand-600 text-lg">Rp 10.000</span>
+                </div>
+                <p id="modal-img-desc" class="text-xs text-gray-500 leading-relaxed">Deskripsi produk nikmat dan gurih dari WonChill.</p>
+                <button id="modal-add-btn" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl text-xs shadow-md transition flex items-center justify-center gap-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah ke Keranjang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Katalog 15 Kipas Custom (Slider / Geser Kanan-Kiri) -->
+    <div id="fan-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-xl rounded-3xl overflow-hidden shadow-2xl relative flex flex-col max-h-[85vh]">
+            <!-- Header Modal Katalog -->
+            <div class="p-4 bg-brand-500 text-white flex justify-between items-center shadow-md">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="fan" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-base">Katalog 15 Pilihan Kipas Custom</h3>
+                </div>
+                <button onclick="closeFanCatalogModal()" class="text-white hover:opacity-80 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Konten Pop-up dengan Slider Horizontal (Geser Kanan-Kiri) -->
+            <div class="p-6 space-y-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs text-gray-500 font-medium">Geser ke kanan atau kiri untuk melihat seluruh 15 model:</p>
+                    <span class="text-[10px] font-bold bg-brand-50 text-brand-600 px-2.5 py-1 rounded-full">Serba Rp 5.000</span>
+                </div>
+
+                <!-- Container Slider Horizontal -->
+                <div class="flex overflow-x-auto gap-4 no-scrollbar py-2 px-1 snap-x scroll-smooth" id="fan-slider-container">
+                    <!-- Di-render via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Keranjang / Checkout Drawer -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex justify-end">
+        <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
+            <!-- Header Modal -->
+            <div class="p-4 bg-brand-500 text-white flex justify-between items-center shadow-md">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-base">Keranjang Pesanan</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearCart()" class="text-xs bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-lg font-semibold transition" title="Kosongkan keranjang">
+                        Kosongkan
+                    </button>
+                    <button onclick="toggleCart()" class="text-white hover:opacity-80 p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- List Item -->
+            <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Diisi via JS -->
+            </div>
+
+            <!-- Footer Modal & Checkout -->
+            <div class="p-4 border-t border-gray-100 bg-gray-50 space-y-3 shadow-lg">
+                <!-- Info Promo Free Gift -->
+                <div id="promo-banner-info" class="bg-yellow-50 border border-yellow-200 p-2.5 rounded-xl text-[11px] text-yellow-800 font-medium flex items-center gap-2 hidden">
+                    <i data-lucide="gift" class="w-4 h-4 text-yellow-600 flex-shrink-0"></i>
+                    <span id="promo-text">🎉 Selamat! Anda berhak mendapatkan Free Gift 1 Kipas Custom (Random)!</span>
+                </div>
+
+                <div class="flex justify-between items-center text-sm font-bold">
+                    <span class="text-gray-600">Total Pembayaran:</span>
+                    <span id="cart-total" class="text-brand-600 text-lg font-black">Rp 0</span>
+                </div>
+
+                <div class="space-y-2">
+                    <input type="text" id="cust-name" placeholder="Nama Pemesan *" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none">
+                    <input type="text" id="cust-address" placeholder="Catatan / Nomor Meja / Alamat *" class="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div class="space-y-2 pt-1">
+                    <button onclick="processOrder('QRIS')" class="w-full bg-brand-500 hover:bg-brand-600 text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition">
+                        <i data-lucide="qr-code" class="w-4 h-4"></i> Bayar Langsung (QRIS)
+                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="processOrder('CASH')" class="bg-gray-800 hover:bg-gray-900 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="banknote" class="w-4 h-4"></i> Bayar di Kasir
+                        </button>
+                        <button onclick="checkoutWhatsApp()" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> Pesan via WA
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal QRIS Pembayaran -->
+    <div id="qris-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 text-center space-y-4 shadow-2xl relative">
+            <button onclick="closeQrisModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="space-y-1">
+                <h3 class="font-black text-lg text-gray-900">Scan QRIS Pembayaran</h3>
+                <p class="text-xs text-gray-500">Scan kode QRIS WonChill di bawah ini</p>
+            </div>
+            
+            <div class="bg-gray-50 p-3 rounded-2xl inline-block border border-brand-100">
+                <img src="qris.jpeg" alt="WonChill" class="w-48 h-48 object-contain mx-auto rounded-lg">
+            </div>
+
+            <div class="text-left bg-brand-50 p-3 rounded-xl border border-brand-100 text-xs space-y-1">
+                <div class="flex justify-between text-gray-600"><span>Nominal:</span><b id="qris-amount" class="text-brand-600 font-extrabold">Rp 0</b></div>
+                <div class="flex justify-between text-gray-600"><span>Merchant:</span><b class="text-gray-900">WONCHILL</b></div>
+            </div>
+
+            <button onclick="confirmQrisPaid()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition">
+                Saya Sudah Bayar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Login Admin -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl">
+            <div class="text-center space-y-1">
+                <div class="bg-brand-100 text-brand-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <h3 class="font-extrabold text-lg text-gray-900">Login Owner / Kasir</h3>
+                <p class="text-xs text-gray-500">Masukkan email untuk membuka rekap penjualan</p>
+            </div>
+            <div class="space-y-3">
+                <input type="email" id="admin-email" placeholder="email kamu (contoh:own@gmail.com)" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none">
+                <p id="login-error" class="text-xs text-red-500 font-bold hidden text-center">gagal mengirim link login!</p>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="closeAdminLoginModal()" class="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs">Batal</button>
+                    <button onclick="submitAdminLogin()" class="w-1/2 bg-brand-500 hover:bg-brand-600 text-white py-2.5 rounded-xl font-bold text-xs">kirim link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Dashboard Rekap Penjualan Admin -->
+    <div id="admin-dashboard-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-4xl rounded-3xl p-6 sm:p-8 my-8 space-y-6 shadow-2xl">
+            <!-- Header Dashboard -->
+            <div class="flex justify-between items-center border-b pb-4">
+                <div>
+                    <h3 class="font-black text-2xl text-gray-900 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="text-brand-500"></i> Rekap Penjualan WonChill
+                    </h3>
+                    <p class="text-xs text-gray-500">Data rekap keuangan otomatis tersimpan dan tercatat di perangkat ini</p>
+                </div>
+                <button onclick="closeAdminDashboard()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Stats Ringkasan Kartu -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-brand-50 border border-brand-100 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-brand-700 uppercase">Total Uang Masuk</span>
+                    <h4 id="stat-income" class="text-3xl font-black text-brand-600 mt-1">Rp 0</h4>
+                </div>
+                <div class="bg-blue-50 border border-blue-100 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-blue-700 uppercase">Total Transaksi</span>
+                    <h4 id="stat-transactions" class="text-3xl font-black text-blue-600 mt-1">0</h4>
+                </div>
+                <div class="bg-green-50 border border-green-100 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-green-700 uppercase">Total Item Terjual</span>
+                    <h4 id="stat-items" class="text-3xl font-black text-green-600 mt-1">0</h4>
+                </div>
+            </div>
+
+            <!-- Filter & Aksi -->
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 bg-gray-50 p-3.5 rounded-2xl">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <span class="text-xs font-bold text-gray-500">Filter:</span>
+                    <select id="filter-date" onchange="renderSalesHistory()" class="px-3 py-1.5 border rounded-xl text-xs font-semibold bg-white outline-none">
+                        <option value="today">Hari Ini</option>
+                        <option value="all">Semua Waktu</option>
+                    </select>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Ekspor Excel
+                    </button>
+                    <button onclick="clearSalesHistory()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i> Reset Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabel Transaksi Masuk -->
+            <div class="border rounded-2xl overflow-hidden max-h-72 overflow-y-auto bg-white">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-gray-100 border-b font-bold text-gray-700 uppercase sticky top-0">
+                        <tr>
+                            <th class="p-3">Waktu</th>
+                            <th class="p-3">Pemesan & Meja</th>
+                            <th class="p-3">Metode</th>
+                            <th class="p-3">Detail Pesanan</th>
+                            <th class="p-3">Total</th>
+                            <th class="p-3 text-center">Cetak</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sales-table-body" class="divide-y divide-gray-100">
+                        <!-- Diisi via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Area Tersembunyi Cetak Struk Printer Thermal -->
+    <div id="receipt-print-area">
+        <div style="text-align: center; margin-bottom: 8px;">
+            <h3 style="font-size: 14px; font-weight: bold; margin: 0;">WONCHILL</h3>
+            <p style="margin: 2px 0;">Wonton Chili Oil & Custom</p>
+            <p style="margin: 0;">--------------------------------</p>
+        </div>
+        <div style="margin-bottom: 8px;">
+            <p style="margin: 2px 0;" id="rec-date">Tgl: -</p>
+            <p style="margin: 2px 0;" id="rec-name">Pelanggan: -</p>
+            <p style="margin: 2px 0;" id="rec-note">Ket: -</p>
+            <p style="margin: 0;">--------------------------------</p>
+        </div>
+        <div id="rec-items" style="margin-bottom: 8px;">
+            <!-- Items struk -->
+        </div>
+        <div style="margin-top: 8px;">
+            <p style="margin: 0;">--------------------------------</p>
+            <p style="margin: 4px 0; font-weight: bold; text-align: right;" id="rec-total">TOTAL: Rp 0</p>
+            <p style="margin: 0;">--------------------------------</p>
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+            <p style="margin: 2px 0;">Terima Kasih!</p>
+            <p style="margin: 2px 0;">Selamat Menikmati WonChill</p>
+        </div>
+    </div>
+
+    <!-- Script JavaScript -->
+    <script>
+        // Data Produk Wonton
+        const wontonProducts = [
+            { id: 1, name: 'Wonton Kukus Original', price: 10000, img: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=400', desc: 'Wonton lembut dikukus sempurna dengan isi ayam gurih dan bumbu rempah khas.' },
+            { id: 2, name: 'Wonton Kukus Chili Oil', price: 10000, img: 'wonton.jpeg', desc: 'Wonton kukus disiram chili oil pedas gurih meresap yang bikin nagih!' },
+            { id: 3, name: 'Wonton Goreng Original', price: 10000, img: 'wontongorengori.jpeg', desc: 'Wonton renyah krispi di luar, empuk dan juicy di dalam.' },
+            { id: 4, name: 'Wonton Goreng Chili Oil', price: 10000, img: 'wontongorengcili.jpeg', desc: 'Wonton goreng krispi dipadukan balutan chili oil spesial WonChill.' },
+        ];
+
+        // Data 15 Pilihan Kipas Custom Mentahan
+        const fanProducts = Array.from({ length: 15 }, (_, index) => ({
+            id: `fan-${index + 1}`,
+            name: `Kipas Custom Model #${index + 1}`,
+            price: 5000,
+            img: `kipas${index + 1}.jpeg`, // Ganti dengan link foto mentahan kipas kamu
+            desc: `Model desain kipas custom estetik pilihan eksklusif #${index + 1} dari WonChill.`
+            
+        }));
+
+        let cart = [];
+        let salesHistory = JSON.parse(localStorage.getItem('wonchill_sales_history')) || [];
+        let isAdminLoggedIn = false;
+        const ADMIN_PASSWORD_HASH = "wonchill123"; 
+        const phoneNumber = "628388214018"; 
+        let pendingOrder = null;
+
+        
+        let secretClickCount = 0;
+        function triggerAdminSecret() {
+            secretClickCount++;
+            if (secretClickCount >= 5) {
+                secretClickCount = 0;
+                openAdminPortal();
+            }
+            setTimeout(() => { secretClickCount = 0; }, 3000);
+        }
+
+        // Filter menu tambahan; tidak mengubah data maupun harga produk.
+        let activeWontonFilter = 'all';
+        function setWontonFilter(filter, button) {
+            activeWontonFilter = filter;
+            document.querySelectorAll('.wc-filter').forEach(el => el.classList.toggle('active', el === button));
+            renderProducts();
+        }
+
+        // Render Produk Wonton
+        function renderProducts() {
+            const wontonContainer = document.getElementById('wonton-products');
+            const query = (document.getElementById('wonton-search')?.value || '').trim().toLowerCase();
+            const visibleProducts = wontonProducts.filter(p => {
+                const name = p.name.toLowerCase();
+                const matchesQuery = !query || name.includes(query) || p.desc.toLowerCase().includes(query);
+                const matchesFilter = activeWontonFilter === 'all' ||
+                    (activeWontonFilter === 'kukus' && name.includes('kukus')) ||
+                    (activeWontonFilter === 'goreng' && name.includes('goreng')) ||
+                    (activeWontonFilter === 'chili' && name.includes('chili oil'));
+                return matchesQuery && matchesFilter;
+            });
+            if (!visibleProducts.length) {
+                wontonContainer.innerHTML = '<div class="wc-empty"><strong>Menu belum ditemukan.</strong><br><span class="inline-block mt-1">Coba kata kunci lain atau pilih filter Semua Menu.</span></div>';
+                return;
+            }
+            wontonContainer.innerHTML = visibleProducts.map(p => `
+                <div class="glass bg-white/90 p-4 rounded-3xl border border-brand-100 shadow-md flex items-center gap-4 transition hover:shadow-lg">
+                    <div class="relative cursor-pointer group" onclick="openImageModal('${p.name}', '${p.img}', 'Rp ${p.price.toLocaleString('id-ID')}', '${p.desc}', ${p.id}, false)">
+                        <img src="${p.img}" alt="${p.name}" class="w-24 h-24 object-cover rounded-2xl shadow-sm transition group-hover:scale-105">
+                        <div class="absolute inset-0 bg-black/30 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition">
+                            <i data-lucide="zoom-in" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                        <h4 class="font-extrabold text-sm text-gray-900 leading-snug">${p.name}</h4>
+                        <p class="text-brand-600 font-black text-sm">Rp ${p.price.toLocaleString('id-ID')}</p>
+                        <div class="flex gap-2 pt-1">
+                            <button onclick="openImageModal('${p.name}', '${p.img}', 'Rp ${p.price.toLocaleString('id-ID')}', '${p.desc}', ${p.id}, false)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1.5 rounded-xl transition">
+                                Detail
+                            </button>
+                            <button onclick="addToCartById(${p.id}, false)" class="bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Buka Katalog 15 Kipas Custom (Pop-up dengan Slider Horizontal / Geser Kanan-Kiri)
+        function openFanCatalogModal() {
+            const sliderContainer = document.getElementById('fan-slider-container');
+            sliderContainer.innerHTML = fanProducts.map(f => `
+                <div class="flex-shrink-0 w-48 bg-gray-50 p-3 rounded-2xl border border-gray-200 snap-center flex flex-col justify-between shadow-sm">
+                    <div>
+                        <div class="relative group cursor-pointer overflow-hidden rounded-xl mb-2" onclick="openImageModal('${f.name}', '${f.img}', 'Rp ${f.price.toLocaleString('id-ID')}', '${f.desc}', '${f.id}', true)">
+                            <img src="${f.img}" alt="${f.name}" class="w-full h-36 object-cover rounded-xl transition group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition">
+                                <i data-lucide="zoom-in" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <h5 class="font-extrabold text-xs text-gray-900 truncate">${f.name}</h5>
+                        <p class="text-[11px] text-brand-600 font-black mt-0.5">Rp ${f.price.toLocaleString('id-ID')}</p>
+                    </div>
+                    <button onclick="addToCartById('${f.id}', true); closeFanCatalogModal();" class="mt-3 w-full bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold py-2 rounded-xl shadow-sm transition flex items-center justify-center gap-1">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Pilih Model Ini
+                    </button>
+                </div>
+            `).join('');
+            
+            document.getElementById('fan-catalog-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeFanCatalogModal() {
+            document.getElementById('fan-catalog-modal').classList.add('hidden');
+        }
+
+        // Pop-Up Modal Zoom Foto Wonton / Kipas
+        function openImageModal(title, imgSrc, priceStr, desc, productId, isFan) {
+            document.getElementById('modal-img-title').innerText = title;
+            document.getElementById('modal-img-src').src = imgSrc;
+            document.getElementById('modal-img-price').innerText = priceStr;
+            document.getElementById('modal-img-desc').innerText = desc;
+            
+            const btn = document.getElementById('modal-add-btn');
+            btn.onclick = function() {
+                addToCartById(productId, isFan);
+                closeImageModal();
+                closeFanCatalogModal();
+            };
+
+            document.getElementById('image-modal').classList.remove('hidden');
+        }
+
+        function closeImageModal() {
+            document.getElementById('image-modal').classList.add('hidden');
+        }
+
+        function addToCartById(id, isFan) {
+            const itemObj = isFan ? fanProducts.find(f => f.id === id) : wontonProducts.find(p => p.id === id);
+            if (!itemObj) return;
+
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ ...itemObj, qty: 1 });
+            }
+
+            playBeep();
+            updateCartUI();
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    removeFromCart(id);
+                    return;
+                }
+            }
+            updateCartUI();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            updateCartUI();
+        }
+
+        function clearCart() {
+            if (cart.length > 0 && confirm("Apakah kamu yakin ingin mengosongkan seluruh isi keranjang?")) {
+                cart = [];
+                updateCartUI();
+            }
+        }
+
+        // Cek total belanja untuk Promo Free Gift Min. 30rb
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const floatingBar = document.getElementById('floating-cart-bar');
+            const promoBanner = document.getElementById('promo-banner-info');
+            
+            // Hapus otomatis item free gift lama jika ada, nanti dihitung ulang
+            cart = cart.filter(item => !item.isFreeGift);
+
+            const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
+            let totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            // Syarat Free Gift jika total belanja murni mencapai >= 30.000
+            if (totalPrice >= 30000) {
+                promoBanner.classList.remove('hidden');
+                // Masukkan item free gift otomatis ke keranjang
+                const randomFan = fanProducts[Math.floor(Math.random() * fanProducts.length)];
+                cart.push({
+                    id: 'free-gift-fan',
+                    name: `🎁 [FREE GIFT] Kipas Custom (${randomFan.name.replace('Kipas Custom - ', '')})`,
+                    price: 0,
+                    qty: 1,
+                    isFreeGift: true
+                });
+            } else {
+                promoBanner.classList.add('hidden');
+            }
+
+            document.getElementById('cart-count').innerText = totalCount;
+            document.getElementById('cart-total').innerText = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+            document.getElementById('floating-total-items').innerText = totalCount;
+            document.getElementById('floating-total-price').innerText = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+
+            if (totalCount > 0) {
+                floatingBar.classList.remove('hidden');
+            } else {
+                floatingBar.classList.add('hidden');
+            }
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="text-center py-10 space-y-2"><i data-lucide="shopping-bag" class="w-10 h-10 text-gray-300 mx-auto"></i><p class="text-xs text-gray-400">Keranjang belanjaan masih kosong</p></div>';
+                lucide.createIcons();
+                return;
+            }
+
+            cartItemsContainer.innerHTML = cart.map(item => `
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                    <div class="flex-1 pr-2">
+                        <p class="font-extrabold text-xs text-gray-900">${item.name}</p>
+                        <p class="text-xs font-semibold ${item.isFreeGift ? 'text-green-600' : 'text-brand-600'}">${item.isFreeGift ? 'GRATIS (Promo 30rb)' : 'Rp ' + item.price.toLocaleString('id-ID')}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${!item.isFreeGift ? `
+                        <div class="flex items-center gap-1 bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
+                            <button onclick="changeQty('${item.id}', -1)" class="w-6 h-6 rounded font-bold hover:bg-gray-100 flex items-center justify-center text-gray-600">-</button>
+                            <span class="font-black text-xs px-1 text-gray-900">${item.qty}</span>
+                            <button onclick="changeQty('${item.id}', 1)" class="w-6 h-6 rounded font-bold hover:bg-gray-100 flex items-center justify-center text-gray-600">+</button>
+                        </div>
+                        <button onclick="removeFromCart('${item.id}')" class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-xl transition" title="Hapus Barang">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        ` : `<span class="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-lg">Bonus</span>`}
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function toggleCart(open = null) {
+            const modal = document.getElementById('cart-modal');
+            if (open === true) {
+                modal.classList.remove('hidden');
+            } else if (open === false) {
+                modal.classList.add('hidden');
+            } else {
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        function processOrder(paymentMethod) {
+            if (cart.length === 0) {
+                alert("Keranjang kamu masih kosong!");
+                return;
+            }
+
+            const name = document.getElementById('cust-name').value.trim();
+            const note = document.getElementById('cust-address').value.trim();
+
+            if (!name || !note) {
+                alert("Harap isi Nama Pemesan dan Catatan/Nomor Meja!");
+                return;
+            }
+
+            const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            pendingOrder = {
+                id: 'ORD-' + Date.now(),
+                timestamp: new Date().toISOString(),
+                dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                customerName: name,
+                note: note,
+                items: [...cart],
+                total: totalAmount,
+                paymentMethod: paymentMethod
+            };
+
+            if (paymentMethod === 'QRIS') {
+                document.getElementById('qris-amount').innerText = `Rp ${totalAmount.toLocaleString('id-ID')}`;
+                document.getElementById('qris-modal').classList.remove('hidden');
+            } else {
+                saveOrderAndNotify(pendingOrder);
+                triggerConfetti();
+                alert("Pesanan berhasil dibuat! Silakan bayar di kasir.");
+                cart = [];
+                updateCartUI();
+                toggleCart(false);
+            }
+        }
+
+        function closeQrisModal() {
+            document.getElementById('qris-modal').classList.add('hidden');
+        }
+
+        function confirmQrisPaid() {
+            if (pendingOrder) {
+                saveOrderAndNotify(pendingOrder);
+                closeQrisModal();
+                triggerConfetti();
+                alert("Pembayaran Berhasil! Pesanan segera diproses.");
+                cart = [];
+                updateCartUI();
+                toggleCart(false);
+            }
+        }
+
+        function triggerConfetti() {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+
+        function saveOrderAndNotify(order) {
+
+            db.ref('transaksi').push(order);
+            salesHistory.unshift(order);
+            localStorage.setItem('wonchill_sales_history', JSON.stringify(salesHistory));
+            playNotificationSound();
+        }
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.frequency.setValueAtTime(440, ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch(e) {}
+        }
+
+        function playNotificationSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch(e) {}
+        }
+
+        function checkoutWhatsApp() {
+            if (cart.length === 0) {
+                alert("Keranjang kamu masih kosong!");
+                return;
+            }
+            const name = document.getElementById('cust-name').value.trim();
+            const address = document.getElementById('cust-address').value.trim();
+
+            if (!name) {
+                alert("Harap isi nama pemesan!");
+                return;
+            }
+
+            let text = `Halo, saya mau pesan WonChill:\n\n`;
+            cart.forEach(item => {
+                text += `• ${item.name} x${item.qty} = Rp ${(item.price * item.qty).toLocaleString('id-ID')}\n`;
+            });
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            text += `\n*Total Belanja: Rp ${total.toLocaleString('id-ID')}*\n\n`;
+            text += `*Nama Pemesan:* ${name}\n`;
+            text += `*Catatan/Lokasi:* ${address || '-'}\n\n`;
+            text += `Terima kasih!`;
+
+            processOrder('WhatsApp');
+            window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function openAdminPortal() {
+            if (isAdminLoggedIn) {
+                showAdminDashboard();
+            } else {
+                document.getElementById('admin-login-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminLoginModal() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        // 1. Kirim Link Login ke Email
+        function submitAdminLogin() {
+            const email = document.getElementById('admin-email').value.trim();
+            if (!email) {
+                 alert("Harap masukkan email terlebih dahulu!");
+                 return;
+    }
+
+            const actionCodeSettings = {
+        // URL tempat pengguna akan dikembalikan setelah mengklik link di email
+                url: window.location.origin + window.location.pathname,
+                handleCodeInApp: true,
+    };
+
+            firebase.auth().sendSignInLinkToEmail(email, actionCodeSettings)
+                .then(() => {
+            // Simpan email ke localStorage supaya tidak perlu mengetik ulang saat membuka link di browser yang sama
+                    window.localStorage.setItem('emailForSignIn', email);
+                    alert("Berhasil! Link login telah dikirim ke email kamu. Silakan buka email dan klik link tersebut.");
+                    closeAdminLoginModal();
+        })
+            .catch((error) => {
+                    console.error(error);
+                    document.getElementById('login-error').classList.remove('hidden');
+        });
+}
+
+// 2. Cek Otomatis saat halaman dibuka dari link email
+        window.addEventListener('DOMContentLoaded', () => {
+    // Memastikan apakah URL saat ini adalah link sign-in dari email Firebase
+            if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+                let email = window.localStorage.getItem('emailForSignIn');
+                if (!email) {
+            // Jika dibuka di perangkat/browser berbeda, minta input email konfirmasi
+                     email = window.prompt('Silakan masukkan kembali email kamu untuk konfirmasi login:');
+        }
+
+                firebase.auth().signInWithEmailLink(email, window.location.href)
+                    .then((result) => {
+                        window.localStorage.removeItem('emailForSignIn');
+                        isAdminLoggedIn = true;
+                        alert("Login Berhasil! Selamat datang kembali.");
+                        showAdminDashboard();
+            })
+                    .catch((error) => {
+                        console.error(error);
+                        alert("Gagal melakukan verifikasi login: " + error.message);
+            });
+    }
+});
+        function showAdminDashboard() {
+            document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+            renderSalesHistory();
+        }
+
+        function closeAdminDashboard() {
+            document.getElementById('admin-dashboard-modal').classList.add('hidden');
+        }
+
+        function renderSalesHistory() {
+            salesHistory = JSON.parse(localStorage.getItem('wonchill_sales_history')) || [];
+            const filterDate = document.getElementById('filter-date').value;
+            const tbody = document.getElementById('sales-table-body');
+            
+            let filtered = salesHistory;
+            if (filterDate === 'today') {
+                const todayStr = new Date().toLocaleDateString('id-ID');
+                filtered = salesHistory.filter(s => new Date(s.timestamp).toLocaleDateString('id-ID') === todayStr);
+            }
+
+            const totalIncome = filtered.reduce((sum, s) => sum + s.total, 0);
+            const totalTransactions = filtered.length;
+            const totalItems = filtered.reduce((sum, s) => sum + s.items.reduce((iSum, i) => iSum + i.qty, 0), 0);
+
+            document.getElementById('stat-income').innerText = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+            document.getElementById('stat-transactions').innerText = totalTransactions;
+            document.getElementById('stat-items').innerText = totalItems;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center p-6 text-gray-400 font-medium">Belum ada riwayat transaksi penjualan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-3 whitespace-nowrap text-gray-500">${s.dateStr}</td>
+                    <td class="p-3"><strong class="text-gray-900">${s.customerName}</strong><br><span class="text-[10px] text-gray-400">${s.note}</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 bg-brand-50 text-brand-700 border border-brand-200 rounded text-[10px] font-extrabold">${s.paymentMethod}</span></td>
+                    <td class="p-3 text-gray-700">${s.items.map(i => `${i.name} (${i.qty}x)`).join(', ')}</td>
+                    <td class="p-3 font-extrabold text-brand-600">Rp ${s.total.toLocaleString('id-ID')}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="printReceiptForOrder('${s.id}')" class="p-1.5 bg-gray-100 hover:bg-brand-500 hover:text-white text-gray-700 rounded-lg transition" title="Cetak Struk">
+                            <i data-lucide="printer" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function printReceiptForOrder(orderId) {
+            const order = salesHistory.find(s => s.id === orderId);
+            if (!order) return;
+
+            document.getElementById('rec-date').innerText = `Tgl: ${order.dateStr}`;
+            document.getElementById('rec-name').innerText = `Nama: ${order.customerName}`;
+            document.getElementById('rec-note').innerText = `Ket: ${order.note}`;
+
+            const itemsContainer = document.getElementById('rec-items');
+            itemsContainer.innerHTML = order.items.map(item => `
+                <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+                    <span>${item.qty}x ${item.name}</span>
+                    <span>Rp ${(item.price * item.qty).toLocaleString('id-ID')}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('rec-total').innerText = `TOTAL: Rp ${order.total.toLocaleString('id-ID')}`;
+            window.print();
+        }
+
+        function exportToExcel() {
+            if (salesHistory.length === 0) {
+                alert("Belum ada data transaksi untuk diekspor!");
+                return;
+            }
+
+            const dataToExport = salesHistory.map(s => ({
+                'ID Transaksi': s.id,
+                'Tanggal': s.dateStr,
+                'Nama Pemesan': s.customerName,
+                'Catatan/Meja': s.note,
+                'Metode Pembayaran': s.paymentMethod,
+                'Detail Item': s.items.map(i => `${i.name} x${i.qty}`).join('; '),
+                'Total Pembayaran (Rp)': s.total
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Rekap Penjualan");
+            XLSX.writeFile(workbook, `Rekap_Penjualan_WonChill_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+
+        function clearSalesHistory() {
+            if (confirm("Yakin ingin menghapus seluruh riwayat rekap penjualan?")) {
+                salesHistory = [];
+                localStorage.removeItem('wonchill_sales_history');
+                renderSalesHistory();
+            }
+        }
+
+        // Inisialisasi awal
+        renderProducts();
+        document.getElementById('wonton-search')?.addEventListener('input', renderProducts);
+        lucide.createIcons();
+        const firebaseConfig = {
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+          apiKey: "AIzaSyDVCPYgB4s3-rwG68-3Xz84yGkQRThwlh4",
+          authDomain: "wonchill-pos.firebaseapp.com",
+          databaseURL: "https://wonchill-pos-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "wonchill-pos",
+          storageBucket: "wonchill-pos.firebasestorage.app",
+          messagingSenderId: "241606903024",
+          appId: "1:241606903024:web:dec9e974519c4a76fcae35",
+          measurementId: "G-8VNDJK6XQN"
+
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        db.ref('transaksi').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // Mengambil data terbaru dari Firebase dan memperbarui rekap otomatis
+                salesHistory = Object.values(data).reverse();
+                localStorage.setItem('wonchill_sales_history', JSON.stringify(salesHistory));
+            } else {
+                salesHistory = [];
+            }
+            
+            // Jika dashboard admin sedang terbuka, tabel akan langsung update otomatis
+            const adminModal = document.getElementById('admin-dashboard-modal');
+            if (adminModal && !adminModal.classList.contains('hidden')) {
+                renderSalesHistory();
+            }
+        });
+    </script>
+</body>
+</html>
