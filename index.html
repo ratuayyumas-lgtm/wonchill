@@ -44,6 +44,7 @@
     <!-- XLSX untuk Ekspor Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -107,23 +108,42 @@
         input:focus, select:focus { border-color:#e35a5c !important; box-shadow:0 0 0 4px rgba(217,47,56,.10) !important; }
         button { -webkit-tap-highlight-color:transparent; }
         button:focus-visible { outline:3px solid rgba(217,47,56,.35); outline-offset:3px; }
-        .wc-hero { position:relative; isolation:isolate; overflow:hidden; color:white; padding:58px 24px 62px; background:radial-gradient(circle at 80% 25%,rgba(255,181,112,.45),transparent 28%),linear-gradient(120deg,#8f1825 0%,#d52d38 48%,#f05a32 100%); }
+
+        .wc-hero { position:relative; isolation:isolate; overflow:hidden; color:white; padding:46px 24px 0; background:radial-gradient(circle at 80% 25%,rgba(255,181,112,.45),transparent 28%),linear-gradient(120deg,#8f1825 0%,#d52d38 48%,#f05a32 100%); }
         .wc-hero:before,.wc-hero:after { content:""; position:absolute; z-index:-1; border:1px solid rgba(255,255,255,.14); border-radius:50%; }
         .wc-hero:before { width:430px;height:430px;right:-110px;top:-230px; }
-        .wc-hero:after { width:300px;height:300px;right:30px;bottom:-220px; }
-        .wc-hero-inner { max-width:1180px; margin:auto; display:grid; grid-template-columns:1.1fr .9fr; align-items:center; gap:40px; text-align:left; }
-        .wc-hero-copy { position:relative; z-index:1; }
-        .wc-eyebrow { display:inline-flex; align-items:center; gap:8px; padding:8px 13px; border:1px solid rgba(255,255,255,.27); background:rgba(255,255,255,.13); border-radius:999px; font-size:12px; font-weight:800; backdrop-filter:blur(8px); }
-        .wc-hero h2 { margin-top:19px; max-width:620px; font-size:clamp(34px,4.5vw,56px); line-height:1.07; font-weight:800; letter-spacing:-2.2px; }
-        .wc-hero p { max-width:490px; margin-top:16px; color:rgba(255,255,255,.83); font-size:15px; line-height:1.8; }
-        .wc-hero-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:25px; }
-        .wc-hero-cta { display:inline-flex; align-items:center; justify-content:center; gap:9px; border-radius:999px; padding:13px 19px; color:#a51e29; background:#fff; font-size:13px; font-weight:800; box-shadow:0 9px 25px rgba(65,8,12,.16); transition:transform .2s,box-shadow .2s; }
-        .wc-hero-cta:hover { transform:translateY(-2px); box-shadow:0 14px 30px rgba(65,8,12,.22); }
-        .wc-hero-note { font-size:12px; font-weight:700; color:rgba(255,255,255,.82); }
-        .wc-hero-art { position:relative; min-height:275px; display:flex; align-items:center; justify-content:center; }
-        .wc-hero-orbit { position:absolute; width:min(31vw,330px); aspect-ratio:1; border:1px solid rgba(255,255,255,.23); border-radius:50%; }
-        .wc-hero-photo { position:relative; width:min(100%,390px); aspect-ratio:1.12; object-fit:cover; border:7px solid rgba(255,255,255,.18); border-radius:36px; transform:rotate(3deg); box-shadow:0 28px 60px rgba(62,9,10,.3); }
-        .wc-photo-tag { position:absolute; left:0; bottom:9px; padding:12px 16px; border-radius:16px; color:#27242a; background:#fffaf4; box-shadow:0 12px 30px rgba(62,9,10,.18); font-size:12px; font-weight:800; transform:rotate(-3deg); }
+        .wc-hero:after { width:300px;height:300px;left:-90px;bottom:60px; }
+        .wc-hero-inner { max-width:1180px; margin:auto; }
+        .wc-hero h2 { max-width:15ch; margin:0 auto; text-align:center; text-wrap:balance; font-family:'Bricolage Grotesque','Plus Jakarta Sans',sans-serif; font-size:clamp(35px,5.5vw,65px); line-height:.96; font-weight:800; letter-spacing:-.035em; text-shadow:0 6px 30px rgba(62,9,10,.25); }
+        .wc-hero-stage { display:grid; grid-template-columns:1fr minmax(260px,380px) 1fr; align-items:center; gap:34px; margin-top:62px; padding-bottom:50px; }
+        .wc-hero p { max-width:30ch; color:rgba(255,255,255,.88); font-size:16px; line-height:1.7; }
+        .wc-hero-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:22px; }
+        .wc-hero-cta { display:inline-flex; align-items:center; justify-content:center; gap:9px; border-radius:999px; padding:14px 22px; color:#a51e29; background:#fff; font-size:14px; font-weight:800; box-shadow:0 7px 0 rgba(120,16,26,.55); transition:transform .2s,box-shadow .2s; }
+        .wc-hero-cta:hover { transform:translateY(-2px); }
+        .wc-hero-cta:active { transform:translateY(5px); box-shadow:0 2px 0 rgba(120,16,26,.55); }
+        .wc-hero-note { margin-top:18px; font-size:12px; font-weight:700; color:rgba(255,255,255,.8); }
+        .wc-steamer { position:relative; width:100%; aspect-ratio:1; }
+        .wc-steamer-ring { position:absolute; inset:0; padding:9px; border-radius:50%; background:#ffb36b; box-shadow:0 0 0 10px rgba(255,255,255,.16),0 30px 60px rgba(62,9,10,.35); }
+        .wc-steamer-ring img { width:100%; height:100%; display:block; border-radius:50%; object-fit:cover; background:#d52d38; }
+        .wc-steam { position:absolute; left:0; right:0; top:-74px; height:90px; pointer-events:none; }
+        .wc-steam i { position:absolute; bottom:0; width:26px; height:80px; border-radius:50%; background:radial-gradient(closest-side,rgba(255,255,255,.6),transparent); filter:blur(6px); opacity:0; animation:wcRise 3.6s ease-in infinite; }
+        .wc-steam i:nth-child(1) { left:36%; }
+        .wc-steam i:nth-child(2) { left:48%; animation-delay:1.2s; }
+        .wc-steam i:nth-child(3) { left:60%; animation-delay:2.3s; }
+        @keyframes wcRise { 0% { transform:translateY(30px) scaleX(1); opacity:0; } 30% { opacity:.9; } 100% { transform:translateY(-60px) scaleX(1.8); opacity:0; } }
+        .wc-badge { position:absolute; right:-26px; bottom:-6px; width:142px; height:142px; }
+        .wc-badge svg { width:100%; height:100%; animation:wcSpin 16s linear infinite; }
+        .wc-badge-core { position:absolute; inset:30px; border-radius:50%; display:grid; place-items:center; background:#fff; color:#d52d38; box-shadow:0 6px 0 rgba(120,16,26,.45); }
+        @keyframes wcSpin { to { transform:rotate(360deg); } }
+        .wc-hero-right { justify-self:end; text-align:right; }
+        .wc-hero-price { font-family:'Bricolage Grotesque','Plus Jakarta Sans',sans-serif; font-weight:800; line-height:.92; letter-spacing:-.03em; font-size:clamp(38px,4.6vw,64px); color:#ffd2a1; }
+        .wc-hero-right p { margin:12px 0 0 auto; max-width:24ch; font-size:14px; }
+        .wc-hero-tags { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; margin-top:16px; }
+        .wc-hero-tags span { padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); font-size:13px; font-weight:700; }
+        .wc-marquee { margin:0 -24px; overflow:hidden; background:#fffaf6; color:#c92732; border-top:4px solid #ffb36b; padding:13px 0; }
+        .wc-track { display:flex; width:max-content; animation:wcSlide 30s linear infinite; }
+        .wc-track span { padding:0 26px; white-space:nowrap; font-family:'Bricolage Grotesque','Plus Jakarta Sans',sans-serif; font-weight:800; font-size:20px; }
+        @keyframes wcSlide { to { transform:translateX(-50%); } }
         .wc-menu-tools { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:0 0 20px; }
         .wc-search-wrap { position:relative; flex:1; max-width:390px; }
         .wc-search-wrap svg { position:absolute; left:15px; top:50%; transform:translateY(-50%); width:18px; color:#92939a; }
@@ -134,15 +154,18 @@
         .wc-filter:hover,.wc-filter.active { color:#fff; border-color:#d92f38; background:#d92f38; box-shadow:0 5px 12px rgba(217,47,56,.16); }
         .wc-empty { grid-column:1/-1; padding:28px; text-align:center; border:1px dashed #e9c9c2; background:#fff; color:#827775; border-radius:20px; font-size:13px; }
         @media(max-width:700px) {
-          .wc-hero { padding:40px 20px 42px; }
-          .wc-hero-inner { grid-template-columns:1fr; gap:25px; text-align:center; }
-          .wc-hero-copy { display:flex; flex-direction:column; align-items:center; }
-          .wc-hero h2 { font-size:38px; letter-spacing:-1.5px; }
-          .wc-hero p { font-size:13px; }
-          .wc-hero-art { min-height:210px; }
-          .wc-hero-photo { width:min(76%,310px); border-radius:28px; }
-          .wc-hero-orbit { width:220px; }
-          .wc-photo-tag { left:7%; bottom:0; }
+          .wc-hero { padding:36px 20px 0; }
+          .wc-hero h2 { font-size:42px; letter-spacing:-.03em; }
+          .wc-hero-stage { grid-template-columns:1fr; justify-items:center; text-align:center; gap:26px; margin-top:76px; padding-bottom:36px; }
+          .wc-steamer { max-width:300px; order:-1; }
+          .wc-badge { right:-16px; width:112px; height:112px; }
+          .wc-badge-core { inset:24px; }
+          .wc-hero p { margin:0 auto; font-size:14px; }
+          .wc-hero-actions { justify-content:center; }
+          .wc-hero-right { justify-self:center; text-align:center; }
+          .wc-hero-right p { margin-left:auto; margin-right:auto; }
+          .wc-hero-tags { justify-content:center; }
+          .wc-marquee { margin:0 -20px; }
           main.max-w-5xl { padding-top:30px !important; gap:42px !important; }
           .wc-menu-tools { align-items:stretch; flex-direction:column; }
           .wc-search-wrap { max-width:none; }
@@ -185,19 +208,46 @@
 
     <section class="wc-hero">
         <div class="wc-hero-inner">
-            <div class="wc-hero-copy">
-                <span class="wc-eyebrow"><i data-lucide="gift" class="w-4 h-4"></i> Belanja Min. Rp 30rb GRATIS Kipas Custom Random!</span>
-                <h2>Satu Gigitan Wonton, Bikin Hari Kamu Makin Chill!</h2>
-                <p>Pilihan wonton kukus & goreng paling mantap untuk nemenin nongkrong kamu. Pesan online sekarang, cepat dan praktis!</p>
-                <div class="wc-hero-actions">
-                    <a href="#wonton-menu" class="wc-hero-cta">Jelajahi Menu <i data-lucide="arrow-down-right" class="w-4 h-4"></i></a>
-                    <span class="wc-hero-note"><i data-lucide="zoom-in" class="w-4 h-4 inline-block align-middle mr-1"></i>Klik foto untuk melihat detail</span>
+            <h2>Satu Gigitan Wonton, Bikin Hari Kamu Makin Chill!</h2>
+
+            <div class="wc-hero-stage">
+                <div class="wc-hero-copy">
+                    <p>Pilihan wonton kukus & goreng paling mantap untuk nemenin nongkrong kamu. Pesan online sekarang, cepat dan praktis!</p>
+                    <div class="wc-hero-actions">
+                        <a href="#wonton-menu" class="wc-hero-cta">Jelajahi Menu <i data-lucide="arrow-down-right" class="w-4 h-4"></i></a>
+                    </div>
+                    <div class="wc-hero-note"><i data-lucide="zoom-in" class="w-4 h-4 inline-block align-middle mr-1"></i>Klik foto untuk melihat detail</div>
+                </div>
+
+                <div class="wc-steamer" aria-label="Foto wonton">
+                    <div class="wc-steam"><i></i><i></i><i></i></div>
+                    <div class="wc-steamer-ring">
+                        <img src="bannerwonton.jpeg" alt="Sajian wonton WonChill" onerror="this.style.display='none'">
+                    </div>
+                    <div class="wc-badge" aria-hidden="true">
+                        <svg viewBox="0 0 150 150">
+                            <defs><path id="wcCirc" d="M75,75 m-60,0 a60,60 0 1,1 120,0 a60,60 0 1,1 -120,0"/></defs>
+                            <circle cx="75" cy="75" r="74" fill="#ffb36b"/>
+                            <text font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="12.5" fill="#8f1825" letter-spacing="1.2">
+                                <textPath href="#wcCirc">Gratis kipas custom random • Gratis kipas custom random •</textPath>
+                            </text>
+                        </svg>
+                        <div class="wc-badge-core"><i data-lucide="flame" class="w-8 h-8"></i></div>
+                    </div>
+                </div>
+
+                <div class="wc-hero-right">
+                    <div class="wc-hero-price">Serba<br>Rp 10.000</div>
+                    <p>Belanja min. Rp 30rb GRATIS Kipas Custom Random!</p>
+                    <div class="wc-hero-tags"><span>Kukus</span><span>Goreng</span><span>Chili Oil</span></div>
                 </div>
             </div>
-            <div class="wc-hero-art" aria-label="Foto wonton">
-                <div class="wc-hero-orbit"></div>
-                <img class="wc-hero-photo" src="bannerwonton.jpeg" alt="Sajian wonton WonChill" onerror="this.style.display='none'">
-                <div class="wc-photo-tag"><i data-lucide="flame" class="w-4 h-4 inline-block align-middle mr-1 text-red-500"></i> Wonton & Custom Fan</div>
+        </div>
+
+        <div class="wc-marquee" aria-hidden="true">
+            <div class="wc-track">
+                <span>Wonton Kukus</span><span>Wonton Goreng</span><span>Chili Oil</span><span>Kipas Custom</span>
+                <span>Wonton Kukus</span><span>Wonton Goreng</span><span>Chili Oil</span><span>Kipas Custom</span>
             </div>
         </div>
     </section>
